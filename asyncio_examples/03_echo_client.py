@@ -1,7 +1,7 @@
 """
 Асинхронный TCP эхо-клиент на базе asyncio.
 
-Основа — репозиторий: https://github.com/fa-python-network/4_asyncio_server
+Основа — репозиторий: [https://github.com/fa-python-network/4_asyncio_server](https://github.com/fa-python-network/4_asyncio_server)
 Обновлено для Python 3.8+ (asyncio.run, без deprecated loop параметра).
 
 Задания:
@@ -10,35 +10,6 @@
 
 Запуск (сервер 02_echo_server.py должен быть запущен в другом терминале):
     python3 03_echo_client.py
-
-═══════════════════════════════════════════════════════════════════════
-СПРАВКА: Оригинальный код клиента из репозитория 4_asyncio_server
-═══════════════════════════════════════════════════════════════════════
-
-Оригинальный клиент (Python 3.6 стиль):
-
-    import asyncio
-
-    async def tcp_echo_client(host, port):
-        reader, writer = await asyncio.open_connection(host, port)
-        message = 'Hello, world'
-
-        writer.write(message.encode())
-        await writer.drain()
-
-        data = await reader.read(100)
-        writer.close()
-
-    loop = asyncio.get_event_loop()
-    task = loop.create_task(tcp_echo_client('localhost', 9095))
-    loop.run_until_complete(task)
-
-Что изменилось в нашей версии (Python 3.8+):
-  1. asyncio.run(main()) заменяет ручное создание event loop и task
-  2. await writer.wait_closed() — корректное ожидание закрытия
-  3. Добавлен asyncio.gather() для запуска нескольких клиентов (TODO 8)
-  4. Добавлена обработка ConnectionRefusedError
-═══════════════════════════════════════════════════════════════════════
 """
 
 import asyncio
@@ -48,34 +19,18 @@ PORT = 9095
 
 
 async def tcp_echo_client(message, host, port):
-    """Отправляет сообщение серверу и выводит ответ.
-
-    Args:
-        message: текст сообщения для отправки
-        host: адрес сервера
-        port: порт сервера
-    """
+    """Отправляет сообщение серверу и выводит ответ."""
     reader, writer = await asyncio.open_connection(host, port)
 
-    # TODO 7: Отправьте сообщение серверу и получите ответ.
-    #
-    # 1. Закодируйте и отправьте:
-    #        writer.write(message.encode())
-    #        await writer.drain()
-    #
-    # 2. Прочитайте ответ:
-    #        data = await reader.read(1024)
-    #
-    # 3. Выведите результат:
-    #        print(f"Отправлено: '{message}' -> Получено: '{data.decode()}'")
-    #
-    # 4. Закройте соединение:
-    #        writer.close()
-    #        await writer.wait_closed()
-
-    # --- Ваш код здесь ---
-    pass
-    # --- Конец вашего кода ---
+    # TODO 7: Отправьте сообщение серверу и получите ответ
+    writer.write(message.encode())
+    await writer.drain()
+    
+    data = await reader.read(1024)
+    print(f"Отправлено: '{message}' -> Получено: '{data.decode()}'")
+    
+    writer.close()
+    await writer.wait_closed()
 
 
 async def main():
@@ -86,19 +41,11 @@ async def main():
 async def main_multiple():
     """Запуск нескольких клиентов одновременно."""
 
-    # TODO 8: Запустите 5 клиентов одновременно через asyncio.gather().
-    # Каждый клиент отправляет своё сообщение. Проанализируйте порядок
-    # вывода — будет ли он совпадать с порядком создания?
-    #
-    # Подсказка:
-    #   messages = [f"Сообщение {i}" for i in range(1, 6)]
-    #   await asyncio.gather(
-    #       *(tcp_echo_client(msg, HOST, PORT) for msg in messages)
-    #   )
-
-    # --- Ваш код здесь ---
-    pass
-    # --- Конец вашего кода ---
+    # TODO 8: Запустите 5 клиентов одновременно через asyncio.gather()
+    messages = [f"Сообщение {i}" for i in range(1, 6)]
+    await asyncio.gather(
+        *(tcp_echo_client(msg, HOST, PORT) for msg in messages)
+    )
 
 
 if __name__ == '__main__':

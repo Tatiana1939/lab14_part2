@@ -10,26 +10,6 @@ Pool автоматически распределяет задачи между
 
 Запуск:
     python3 03_pool_matrix.py
-
-═══════════════════════════════════════════════════════════════════════
-СПРАВКА: Зачем нужен Pool (из репозитория 3_Parallelism)
-https://github.com/fa-python-network/3_Parallelism
-═══════════════════════════════════════════════════════════════════════
-
-В файле 02_matrix_multiply.py для каждого элемента матрицы создавался
-отдельный Process. При матрице 50x50 это 2500 процессов — крайне
-неэффективно, так как на создание каждого процесса тратится время.
-
-Pool решает эту проблему: создаётся фиксированное число процессов
-(обычно = количеству ядер CPU), и задачи распределяются между ними.
-
-Задание из репозитория:
-  «Используйте пул процессов, чтобы распределять вычисления между
-   определённым заранее количеством процессов, не зависящим от размеров
-   матрицы.»
-
-Именно это вы реализуете ниже с помощью Pool.starmap().
-═══════════════════════════════════════════════════════════════════════
 """
 
 import time
@@ -74,24 +54,14 @@ def pool_multiply(A, B, num_processes):
     cols = len(B[0])
     result = [[0] * cols for _ in range(rows)]
 
-    # TODO 3: Создайте пул процессов и используйте pool.starmap() для
-    # параллельного вычисления всех элементов матрицы.
-    #
-    # Подсказка:
-    # 1. Подготовьте список аргументов — кортежей (i, j, A, B) для каждого элемента:
-    #      args = [(i, j, A, B) for i in range(rows) for j in range(cols)]
-    #
-    # 2. Создайте пул и вызовите starmap:
-    #      with Pool(processes=num_processes) as pool:
-    #          results_list = pool.starmap(element, args)
-    #
-    # 3. Заполните матрицу result из results_list:
-    #      for (i, j, val) in results_list:
-    #          result[i][j] = val
-
-    # --- Ваш код здесь ---
-
-    # --- Конец вашего кода ---
+    # TODO 3: Создайте пул процессов и используйте pool.starmap()
+    args = [(i, j, A, B) for i in range(rows) for j in range(cols)]
+    
+    with Pool(processes=num_processes) as pool:
+        results_list = pool.starmap(element, args)
+    
+    for (i, j, val) in results_list:
+        result[i][j] = val
 
     return result
 
@@ -107,19 +77,14 @@ if __name__ == '__main__':
     time_seq = time.time() - t
     print(f"Последовательно: {time_seq:.4f} сек")
 
-    # TODO 4: Запустите pool_multiply с разным числом процессов (1, 2, 4)
-    # и выведите время для каждого варианта. Сравните с последовательным.
-    #
-    # Подсказка:
-    #   for n in [1, 2, 4]:
-    #       t = time.time()
-    #       par_result = pool_multiply(matrix_a, matrix_b, n)
-    #       elapsed = time.time() - t
-    #       print(f"Pool ({n} процессов): {elapsed:.4f} сек")
-    #
-    # Проверьте, что результаты совпадают:
-    #   assert par_result == seq_result, "Результаты не совпадают!"
-
-    # --- Ваш код здесь ---
-
-    # --- Конец вашего кода ---
+    # TODO 4: Запустите pool_multiply с разным числом процессов
+    for n in [1, 2, 4]:
+        t = time.time()
+        par_result = pool_multiply(matrix_a, matrix_b, n)
+        elapsed = time.time() - t
+        print(f"Pool ({n} процессов): {elapsed:.4f} сек")
+        
+        # Проверка корректности
+        assert par_result == seq_result, f"Результаты не совпадают при {n} процессах!"
+    
+    print("\nВсе результаты корректны! ✅")
